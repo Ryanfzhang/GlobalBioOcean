@@ -67,10 +67,10 @@ lr_scheduler = accelerator.prepare_scheduler(lr_scheduler)
 
 best_mse_sst, best_mse_salt = 100, 100
 
-# if accelerator.is_main_process:
-check_dir(args.checkpoints)
-# accelerator.print("Training start")
-print("Training start")
+if accelerator.is_main_process:
+    check_dir(args.checkpoints)
+    accelerator.print("Training start")
+
 criteria = torch.nn.MSELoss(reduction='none')
 
 for epoch in range(args.train_epochs):
