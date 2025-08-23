@@ -41,7 +41,7 @@ parser.add_argument('--loss', type=str, default='mae', help='loss function')
 args = parser.parse_args()
 
 
-train_dataset = GlorysDataset(nc_path=args.dataset_path)
+train_dataset = GlorysDataset(nc_path=args.dataset_path, project_path="/home/mafzhang/GlobalBioOcean")
 train_dloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4, prefetch_factor=1)
 test_dataset = GlorysDataset(nc_path=args.dataset_path)
 test_dloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=True, num_workers=4, prefetch_factor=1)
