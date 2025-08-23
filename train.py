@@ -24,6 +24,7 @@ parser = argparse.ArgumentParser(description='Ocean Forecasting')
 # data loader
 parser.add_argument('--checkpoints', type=str, default='./checkpoints/multi_source_integrate/', help='location of model checkpoints')
 parser.add_argument('--dataset_path', type=str, default='/home/mafzhang/data/', help='location of dataset')
+parser.add_argument('--project_path', type=str, default='/home/mafzhang/GlobalBioOcean', help='location of dataset')
 
 parser.add_argument('--levels', type=int, default=23, help='input sequence length')
 parser.add_argument('--patch_size', type=int, default=24, help='input sequence length')
@@ -41,13 +42,13 @@ parser.add_argument('--loss', type=str, default='mae', help='loss function')
 args = parser.parse_args()
 
 
-train_dataset = GlorysDataset(nc_path=args.dataset_path, project_path="/home/mafzhang/GlobalBioOcean")
+train_dataset = GlorysDataset(nc_path=args.dataset_path, project_path=args.project_path)
 train_dloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4, prefetch_factor=1)
-test_dataset = GlorysDataset(nc_path=args.dataset_path, project_path="/home/mafzhang/GlobalBioOcean")
+test_dataset = GlorysDataset(nc_path=args.dataset_path, project_path=args.project_path)
 test_dloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=True, num_workers=4, prefetch_factor=1)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-model = Multi_source_integrate(patch_size=args.patch_size, levels=args.levels, embed_dim=args.hidden_size)
+model = Multi_source_integrate(path=args.project_path, patch_size=args.patch_size, levels=args.levels, embed_dim=args.hidden_size)
 model = model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay, betas=(0.9, 0.995))
 lr_scheduler = get_cosine_schedule_with_warmup(
