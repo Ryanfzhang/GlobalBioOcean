@@ -32,8 +32,6 @@ class Multi_source_integrate(nn.Module):
         self.decoder = Decoder(path=path, img_size=img_size, levels=levels, patch_size=patch_size, embed_dim=embed_dim)
 
     def forward(self, x_phy, x_bio, time):
-        print(x_phy.shape)
-        print(x_bio.shape)
         B, V, L, H, W = x_phy.shape
         
         x_phy, x_bio = self.encoder(x_phy, x_bio, time) # B, L, D
