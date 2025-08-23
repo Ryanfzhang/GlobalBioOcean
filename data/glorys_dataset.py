@@ -72,7 +72,7 @@ class GlorysDataset(data.Dataset):
         data = []
         for var in self.phy_vars:
             data.append(np.load(os.path.join(self.glorys_phy, "{}-{:02d}-{:02d}.nc.npy".format(var, key.month, key.day))))
-        data = np.stack(data, axis=0)
+        data = np.concatenate(data, axis=0)
         return data
     
     def LoadBio(self, key):
@@ -88,7 +88,7 @@ class GlorysDataset(data.Dataset):
         for var in self.bio_vars:
             data.append(np.load(os.path.join(self.glorys_bio, "{}-{:02d}-{:02d}.nc.npy".format(var, key.month, key.day))))
 
-        data = np.stack(data, axis=0)
+        data = np.concatenate(data, axis=0)
         return data
 
     def __getitem__(self, index):
