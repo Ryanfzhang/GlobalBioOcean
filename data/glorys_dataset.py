@@ -46,7 +46,6 @@ class GlorysDataset(data.Dataset):
         self.validation = validation
         self.seed = 0
 
-        self.depth = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32]
 
         keys = list(pd.date_range(start=startDate, end=endDate, freq=freq))
         train_keys, _, test_keys, _ = train_test_split(keys, keys, test_size=0.3, random_state=self.seed)
@@ -72,7 +71,7 @@ class GlorysDataset(data.Dataset):
 
         data = []
         for var in self.phy_vars:
-            data.append(np.load(os.path.join(self.glorys_phy, "{}-{:02d}-{:02d}.nc.npy".format(var, key.month, key.day)))[0, self.depth])
+            data.append(np.load(os.path.join(self.glorys_phy, "{}-{:02d}-{:02d}.nc.npy".format(var, key.month, key.day))))
         data = np.stack(data, axis=0)
         return data
     
@@ -87,7 +86,7 @@ class GlorysDataset(data.Dataset):
         """
         data = []
         for var in self.bio_vars:
-            data.append(np.load(os.path.join(self.glorys_bio, "{}-{:02d}-{:02d}.nc.npy".format(var, key.month, key.day)))[0, self.depth])
+            data.append(np.load(os.path.join(self.glorys_bio, "{}-{:02d}-{:02d}.nc.npy".format(var, key.month, key.day))))
 
         data = np.stack(data, axis=0)
         return data
