@@ -43,9 +43,9 @@ args = parser.parse_args()
 
 
 train_dataset = GlorysDataset(nc_path=args.dataset_path, project_path=args.project_path)
-train_dloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4, prefetch_factor=1)
+train_dloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=4, prefetch_factor=2)
 test_dataset = GlorysDataset(nc_path=args.dataset_path, project_path=args.project_path)
-test_dloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=True, num_workers=4, prefetch_factor=1)
+test_dloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=True, num_workers=4, prefetch_factor=2)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Multi_source_integrate(path=args.project_path, patch_size=args.patch_size, levels=args.levels, embed_dim=args.hidden_size)
@@ -77,15 +77,13 @@ for epoch in range(args.train_epochs):
     train_loss = AverageMeter()
     model.train()
     epoch_time = time.time()
-    for i, (x_phy, x_bio, time, land_mask, _, _, _) in tqdm(enumerate(train_dloader), total=len(train_dloader), disable=(not accelerator.is_local_main_process)):
-    # for i, (x_phy, x_bio, time, land_mask, _, _, _) in tqdm(enumerate(train_dloader), total=len(train_dloader)):
-        x_phy, x_bio, time, land_mask = x_phy.to(device), x_bio.to(device), time.to(device), land_mask.to(device)
-        x_bio_recon_f_phy, x_bio_recon_f_bio, x_phy_latent, x_bio_latent = model(x_phy, x_bio, time)
+    for i, (x_phy, x_bio, time_mark, land_mask, _, _, _) in tqdm(enumerate(train_dloader), total=len(train_dloader), disable=(not accelerator.is_local_main_process)):
+        x_bio_recon_f_phy, x_bio_recon_f_bio = model(x_phy, x_bio, time_mark)
 
-        recon_loss= criteria(x_bio_recon_f_bio, x_bio) + criteria(x_bio_recon_f_bio, x_bio)
-        teacher_loss = criteria(x_phy_latent, x_bio_latent.detach())
+        recon_loss= criteria(x_bio_recon_f_phy, x_bio) + criteria(x_bio_recon_f_bio, x_bio)
+        # teacher_loss = criteria(x_phy_latent, x_bio_latent.detach())
 
-        loss = (land_mask * recon_loss).mean() + 0.1 * teacher_loss.mean()
+        loss = (land_mask * recon_loss).mean() 
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -93,15 +91,15 @@ for epoch in range(args.train_epochs):
         train_loss.update(loss.detach().cpu().item())
         torch.cuda.empty_cache()
 
-    print("Epoch: {} | Train Loss: {:.4f}, Cost Time: {:.4f}".format(epoch, train_loss.avg, time.time()-epoch_time))
+    accelerator.print("Epoch: {} | Train Loss: {:.4f}, Cost Time: {:.4f}".format(epoch, train_loss.avg, time.time()-epoch_time))
 
     train_loss.reset()
 
     if epoch%10==0: 
         with torch.no_grad():
             recon_f_bio_mse_list, recon_f_phy_mse_list = [], []
-            for i, (x_phy, x_bio, time, land_mask, bio_mean, bio_std, _) in tqdm(enumerate(test_dloader), total=len(test_dloader), disable=(not accelerator.is_local_main_process)):
-                x_bio_recon_f_phy, x_bio_recon_f_bio, x_phy_latent, x_bio_latent = model(x_phy, x_bio, time)
+            for i, (x_phy, x_bio, time_mark, land_mask, bio_mean, bio_std, _) in tqdm(enumerate(test_dloader), total=len(test_dloader), disable=(not accelerator.is_local_main_process)):
+                x_bio_recon_f_phy, x_bio_recon_f_bio = model(x_phy, x_bio, time_mark)
                 land_mask = land_mask[:,None, None, ...]
 
                 # denormalize

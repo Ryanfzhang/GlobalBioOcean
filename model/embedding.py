@@ -39,7 +39,9 @@ class FourierExpansion(nn.Module):
             d // 2,
             base=10,
         ), requires_grad=False)
-        self.transform = nn.Linear(d, d)
+        self.transform = nn.Sequential(nn.Linear(d, d),
+                                       nn.SiLU(),
+                                       nn.Linear(d, d))
 
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

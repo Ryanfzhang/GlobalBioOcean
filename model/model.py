@@ -45,4 +45,4 @@ class Multi_source_integrate(nn.Module):
         x_bio_recon_f_phy = self.decoder(x_phy_latent)
         x_bio_recon_f_bio= self.decoder(x_bio_latent)
         
-        return x_bio_recon_f_phy, x_bio_recon_f_bio, x_phy_latent, x_bio_latent
+        return x_bio_recon_f_phy, x_bio_recon_f_bio
