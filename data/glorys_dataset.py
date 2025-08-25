@@ -103,7 +103,7 @@ class GlorysDataset(data.Dataset):
         normalized_bio= np.nan_to_num(normalized_bio, nan=0.)
         day_of_year = self.day_of_year[index]
 
-        return normalized_phy.astype(np.float32), normalized_bio.astype(np.float32), day_of_year, self.land_mask, self.bio_vars_mean, self.bio_vars_std, time_str, phy, bio
+        return normalized_phy.astype(np.float32), normalized_bio.astype(np.float32), day_of_year, self.land_mask, self.bio_vars_mean, self.bio_vars_std, time_str
     
     def normalize(self, phy, bio):
         phy = (phy - self.phy_vars_mean[:, :, np.newaxis, np.newaxis])/(self.phy_vars_std[:, :, np.newaxis, np.newaxis]+1e-5)
