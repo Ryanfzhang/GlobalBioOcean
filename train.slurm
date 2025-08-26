@@ -11,6 +11,6 @@
 
 ###############################
 
-accelerate launch train.py --dataset_path="/project/earthhk/" --project_path="/home/mafzhang/GlobalBioOcean"
+accelerate launch train.py --dataset_path="/project/earthhk/" --project_path="/home/mafzhang/GlobalBioOcean" --patch_size=6
 
 ###############################
