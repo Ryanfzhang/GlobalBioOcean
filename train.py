@@ -105,6 +105,7 @@ for epoch in range(args.train_epochs):
                 # denormalize
                 x_bio_recon_f_phy = x_bio_recon_f_phy * bio_std[...,None, None] + bio_mean[..., None, None]
                 x_bio_recon_f_bio= x_bio_recon_f_bio * bio_std[...,None, None] + bio_mean[..., None, None]
+                x_bio = x_bio * bio_std[...,None, None] + bio_mean[..., None, None]
 
                 recon_f_phy= criteria(x_bio_recon_f_phy, x_bio)
                 recon_f_phy_mse = (land_mask * recon_f_phy).sum([3,4])/ land_mask.float().sum([3,4])
