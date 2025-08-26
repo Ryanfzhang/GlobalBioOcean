@@ -47,9 +47,7 @@ train_dloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch
 test_dataset = GlorysDataset(nc_path=args.dataset_path, project_path=args.project_path)
 test_dloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=True, num_workers=4, prefetch_factor=2)
 
-device = "cuda" if torch.cuda.is_available() else "cpu"
 model = Multi_source_integrate(path=args.project_path, patch_size=args.patch_size, levels=args.levels, embed_dim=args.hidden_size)
-model = model.to(device)
 optimizer = torch.optim.AdamW(model.parameters(), lr=args.learning_rate, weight_decay=args.weight_decay, betas=(0.9, 0.995))
 lr_scheduler = get_cosine_schedule_with_warmup(
     optimizer=optimizer,
@@ -81,7 +79,6 @@ for epoch in range(args.train_epochs):
         x_bio_recon_f_phy, x_bio_recon_f_bio = model(x_phy, x_bio, time_mark)
 
         recon_loss= criteria(x_bio_recon_f_phy, x_bio) + criteria(x_bio_recon_f_bio, x_bio)
-        # teacher_loss = criteria(x_phy_latent, x_bio_latent.detach())
 
         loss = (land_mask * recon_loss).mean() 
         optimizer.zero_grad()
@@ -95,7 +92,7 @@ for epoch in range(args.train_epochs):
 
     train_loss.reset()
 
-    if epoch%10==0: 
+    if epoch % 10==0: 
         with torch.no_grad():
             recon_f_bio_mse_list, recon_f_phy_mse_list = [], []
             for i, (x_phy, x_bio, time_mark, land_mask, bio_mean, bio_std, _) in tqdm(enumerate(test_dloader), total=len(test_dloader), disable=(not accelerator.is_local_main_process)):
@@ -124,3 +121,4 @@ for epoch in range(args.train_epochs):
             accelerator.print("Test" + "*"*48)
             accelerator.print(mean_recon_f_bio_mse)
             accelerator.print(mean_recon_f_phy_mse)
+            torch.save(model.module.state_dict(), os.path.join(args.checkpoints,"{}.model".format(epoch)))
