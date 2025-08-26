@@ -27,7 +27,7 @@ parser.add_argument('--dataset_path', type=str, default='/home/mafzhang/data/', 
 parser.add_argument('--project_path', type=str, default='/home/mafzhang/GlobalBioOcean', help='location of dataset')
 
 parser.add_argument('--levels', type=int, default=23, help='input sequence length')
-parser.add_argument('--patch_size', type=int, default=24, help='input sequence length')
+parser.add_argument('--patch_size', type=int, default=12, help='input sequence length')
 
 # model
 parser.add_argument('--hidden_size', type=int, default=256, help='input sequence length')
@@ -67,6 +67,7 @@ best_mse_sst, best_mse_salt = 100, 100
 
 if accelerator.is_main_process:
     check_dir(args.checkpoints)
+    accelerator.print(args)
     accelerator.print("Training start")
 
 criteria = torch.nn.MSELoss(reduction='none')
