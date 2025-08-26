@@ -71,11 +71,11 @@ if accelerator.is_main_process:
 
 criteria = torch.nn.MSELoss(reduction='none')
 
-for epoch in range(args.train_epochs):
+for epoch in tqdm(range(args.train_epochs), total=args.train_epochs):
     train_loss = AverageMeter()
     model.train()
     epoch_time = time.time()
-    for i, (x_phy, x_bio, time_mark, land_mask, _, _, _) in tqdm(enumerate(train_dloader), total=len(train_dloader), disable=(not accelerator.is_local_main_process)):
+    for i, (x_phy, x_bio, time_mark, land_mask, _, _, _) in enumerate(train_dloader):
         x_bio_recon_f_phy, x_bio_recon_f_bio = model(x_phy, x_bio, time_mark)
 
         recon_loss= criteria(x_bio_recon_f_phy, x_bio) + criteria(x_bio_recon_f_bio, x_bio)
@@ -92,10 +92,11 @@ for epoch in range(args.train_epochs):
 
     train_loss.reset()
 
-    if epoch % 10==0: 
+    if epoch % 10 == 0: 
+        model.eval()
         with torch.no_grad():
             recon_f_bio_mse_list, recon_f_phy_mse_list = [], []
-            for i, (x_phy, x_bio, time_mark, land_mask, bio_mean, bio_std, _) in tqdm(enumerate(test_dloader), total=len(test_dloader), disable=(not accelerator.is_local_main_process)):
+            for i, (x_phy, x_bio, time_mark, land_mask, bio_mean, bio_std, _) in enumerate(test_dloader):
                 x_bio_recon_f_phy, x_bio_recon_f_bio = model(x_phy, x_bio, time_mark)
                 land_mask = land_mask[:,None, None, ...]
 
@@ -118,7 +119,10 @@ for epoch in range(args.train_epochs):
             mean_recon_f_bio_mse = np.concatenate(recon_f_bio_mse_list, axis=0).mean(0)
             mean_recon_f_phy_mse = np.concatenate(recon_f_phy_mse_list, axis=0).mean(0)
 
-            accelerator.print("Test" + "*"*48)
+            accelerator.print("Epoch: {} | Test".format(epoch) + "*"*200)
+            accelerator.print("Reconstrcut Bio from Bio")
             accelerator.print(mean_recon_f_bio_mse)
+            accelerator.print("Reconstrcut Bio from Phys")
             accelerator.print(mean_recon_f_phy_mse)
+            accelerator.print("Epoch: {} | Test".format(epoch) + "*"*200)
             torch.save(model.module.state_dict(), os.path.join(args.checkpoints,"{}.model".format(epoch)))
